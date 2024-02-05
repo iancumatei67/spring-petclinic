@@ -73,8 +73,7 @@ pipeline {
             }
             steps {
                 script {
-                    def gitCommitShort = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
-                    appMR = docker.build("${DOCKER_REPO_MR}:${gitCommitShort}")
+                    appMR = docker.build("iancumatei67/mr")
                     appMR.inside {
                         sh 'echo $(curl localhost:8080)'
                     }
@@ -91,9 +90,8 @@ pipeline {
             }
             steps {
                 script {
-                    def gitCommitShort = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     docker.withRegistry('https://registry.hub.docker.com', 'docker_hub_login') {
-                        appMR.push("${DOCKER_REPO_MR}:${gitCommitShort}")
+                        appMR.push("${env.BUILD_NUMBER}")
                         appMR.push("latest")
                     }
                 }
