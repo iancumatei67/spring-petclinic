@@ -67,7 +67,7 @@ pipeline {
         stage('Build Docker Image (MR)') {
             when {
                 expression {
-                    return env.BRANCH_NAME.startsWith('mr/')
+                    return env.BRANCH_NAME == 'mr'
                 }
             }
             steps {
@@ -84,7 +84,7 @@ pipeline {
         stage('Push Docker Image (MR)') {
             when {
                 expression {
-                    return env.BRANCH_NAME.startsWith('mr/')
+                    return env.BRANCH_NAME == 'mr'
                 }
             }
             steps {
