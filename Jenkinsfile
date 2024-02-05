@@ -2,9 +2,9 @@ pipeline {
     agent any
     
     environment {
-        MAVEN_HOME = tool 'M3' // Assuming your Maven tool in Jenkins is named "M3"
-        DOCKER_REPO_MR = "iancumatei67/mr" // Change to your Docker registry/repository for merge requests
-        DOCKER_REPO_MAIN = "iancumatei67/main" // Change to your Docker registry/repository for main branch
+        MAVEN_HOME = tool 'M3'
+        DOCKER_REPO_MR = "iancumatei67/mr"
+        DOCKER_REPO_MAIN = "iancumatei67/main"
     }
     
     stages {
@@ -42,7 +42,7 @@ pipeline {
             }
             steps {
                 script {
-                    app = docker.build("iancumatei67/main")
+                    app = docker.build("${DOCKER_REPO_MAIN}")
                     app.inside {
                         sh 'echo $(curl localhost:8080)'
                     }
@@ -63,12 +63,11 @@ pipeline {
                 }
             }
         }
-
+        
         stage('Build Docker Image (MR)') {
             when {
                 expression {
-                    // Execute this stage only for merge requests
-                    return env.CHANGE_ID != null
+                    return env.BRANCH_NAME.startsWith('mr/')
                 }
             }
             steps {
@@ -85,15 +84,13 @@ pipeline {
         stage('Push Docker Image (MR)') {
             when {
                 expression {
-                    // Execute this stage only for merge requests
-                    return env.CHANGE_ID != null
+                    return env.BRANCH_NAME.startsWith('mr/')
                 }
             }
             steps {
                 script {
-                    def gitCommitShort = sh(script: 'git rev-parse --short HEAD', returnStdout: true).trim()
                     docker.withRegistry('https://registry.hub.docker.com', 'docker_hub_login') {
-                        appMR.push("${DOCKER_REPO_MR}:${gitCommitShort}")
+                        appMR.push("${env.BUILD_NUMBER}")
                         appMR.push("latest")
                     }
                 }
